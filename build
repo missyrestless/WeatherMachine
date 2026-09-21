@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Set to a destination folder to copy files to
+DEST="${HOME}/transfers/wm"
+
+make clean
+make
+[ $? -eq 0 ] && {
+  [ -x trim_lslo ] && {
+    echo "Trimming comments from optimized LSL script"
+    ./trim_lslo
+  }
+}
+
+[ "$1" == "-c" ] && {
+  rm -rf ${DEST}
+  mkdir -p ${DEST}
+
+  cp Controller.lslo ${DEST}/Controller.lsl
+  cp Emitter.lslo ${DEST}/Emitter.lsl
+  cp COPYRIGHT LICENSE ${DEST}
+  cp README.txt ${DEST}/README
+}

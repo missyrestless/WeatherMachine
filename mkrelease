@@ -1,0 +1,62 @@
+#!/bin/bash
+
+usage() {
+    printf "\nUsage: mkrelease [-b branch] [-d] [-p] [-u]"
+    printf "\nWhere:"
+    printf "\n\t-b branch specifies the branch to use [default: main]"
+    printf "\n\t-d indicates create draft release"
+    printf "\n\t-u displays this usage message and exits\n"
+    exit 1
+}
+
+DRAFT=
+BRANCH="main"
+while getopts "b:du" flag; do
+    case $flag in
+        b)
+            BRANCH="${OPTARG}"
+            ;;
+        d)
+            DRAFT="--draft"
+            ;;
+        u)
+            usage
+            ;;
+    esac
+done
+shift $(( OPTIND - 1 ))
+
+if [ -f VERSION ]; then
+  source VERSION
+else
+  echo "ERROR: missing VERSION"
+  exit 1
+fi
+
+ANNO="Truth & Beauty Weather Machine release, version ${VERSION}"
+
+if [ -f ${HOME}/.mrprivate ]; then
+  source ${HOME}/.mrprivate
+fi
+
+make clean
+make
+[ -x trim_lslo ] && ./trim_lslo
+
+PRODUCT="WeatherMachine"
+tar cf - *.lslo *.lsl \
+         LICENSE \
+         COPYRIGHT \
+         VERSION | gzip -9 > ${PRODUCT}-${VERSION}.tar.gz
+
+gh release create v${VERSION} ${DRAFT} \
+                  --title "${ANNO}" \
+                  --target "${BRANCH}" \
+                  --notes-file README.md \
+                  Controller.lslo \
+                  Emitter.lslo \
+                  ${PRODUCT}-${VERSION}.tar.gz
+
+git fetch --tags origin
+rm -f ${PRODUCT}-${VERSION}.tar.gz
+make clean

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+for lslo in *.lslo
+do
+  [ "${lslo}" == "*.lslo" ] && continue
+  grep ^//end_unprocessed_text "${lslo}" >/dev/null && {
+    [ -f header ] && cp header /tmp/lslo$$
+    cat "${lslo}" | sed -e "1,/^\/\/end_unprocessed_text/d" >> /tmp/lslo$$
+    cp /tmp/lslo$$ "${lslo}"
+    rm -f /tmp/lslo$$
+  }
+done
