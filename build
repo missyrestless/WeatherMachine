@@ -19,5 +19,5 @@ make
   cp Controller.lslo ${DEST}/Controller.lsl
   cp Emitter.lslo ${DEST}/Emitter.lsl
   cp COPYRIGHT LICENSE ${DEST}
-  cp README.md ${DEST}/README
+  cp README.txt ${DEST}/README
 }

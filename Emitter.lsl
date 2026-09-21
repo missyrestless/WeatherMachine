@@ -19,14 +19,14 @@
 //                                                //
 ////////////////////////////////////////////////////
 
-string  VERSION = "1.0.0";
+string  VERSION = "1.0.1";
 
 // -------------------------- OWNER CONFIGURATION --------------------------
 float   RAIN_RADIUS       = 10.0;
 float   RAIN_HEIGHT       = 12.0; // Documented placement height; move the root prim this high
 float   RAIN_SPEED        = 1.0;  // Multiplier, clamped by buildRain()
 float   RAIN_DENSITY      = 1.0;  // Multiplier, 0.25 through 2.0 recommended
-string  RAIN_TEXTURE      = "RAIN_TEXTURE";
+string  RAIN_TEXTURE      = "RAIN";
 vector  WIND_DIRECTION    = <1.0, 0.0, 0.0>;
 float   WIND_STRENGTH     = 0.0;
 
@@ -49,7 +49,7 @@ integer Thunder = TRUE;
 integer Ambience = TRUE;
 integer Auto;
 integer Night;
-integer Intensity = 2; // 0 light, 1 normal, 2 heavy, 3 extreme, 4 horror
+integer Intensity = 2; // 0 light, 1 normal, 2 heavy, 3 extreme, 4 scary
 integer WindMode;       // 0 none, 1 light, 2 strong
 float   Volume = 0.75;
 
@@ -67,7 +67,7 @@ string  LoopName;
 
 list ThunderNames;
 list AmbienceNames;
-list INTENSITY_NAMES = ["LIGHT RAIN", "RAINSTORM", "THUNDERSTORM", "EXTREME STORM", "HORROR STORM"];
+list INTENSITY_NAMES = ["LIGHT RAIN", "RAINSTORM", "THUNDERSTORM", "EXTREME STORM", "SCARY STORM"];
 list WIND_NAMES = ["NO WIND", "LIGHT WIND", "STRONG WIND"];
 
 float clamp(float value, float low, float high) {
@@ -304,15 +304,16 @@ closeMenu() {
 
 showDialog(string page) {
     MenuPage = page;
-    MenuExpires = now() + 45.0;
-    string heading = "HEAVY RAIN & THUNDERSTORM FX SYSTEM PRO\n";
+    MenuExpires = now() + 60.0;
+    string heading = "Version: " + VERSION + "\n";
     list buttons;
     if (page == "MAIN") {
-        heading += "Storm: " + onOff(Storm) + " | " + llList2String(INTENSITY_NAMES, Intensity);
+        // heading += "Storm: " + onOff(Storm) + " | " + llList2String(INTENSITY_NAMES, Intensity);
+        heading += statusText(FALSE);
         buttons = ["STORM ON", "STORM OFF", "INTENSITY", "RAIN", "LIGHTNING", "THUNDER",
                    "AMBIENCE", "WIND", "AUTO STORM", "STRIKE", "VOLUME", "MORE"];
     } else if (page == "INTENSITY") {
-        buttons = ["LIGHT", "NORMAL", "HEAVY", "EXTREME", "HORROR", "BACK"];
+        buttons = ["LIGHT", "NORMAL", "HEAVY", "EXTREME", "SCARY", "BACK"];
     } else if (page == "VOLUME") {
         buttons = ["25%", "50%", "75%", "100%", "BACK"];
     } else if (page == "WIND") {
@@ -410,7 +411,7 @@ handleButton(string message) {
         setIntensity(2);
     } else if (message == "EXTREME") {
         setIntensity(3);
-    } else if (message == "HORROR") {
+    } else if (message == "SCARY") {
         setIntensity(4);
     } else if (message == "NO WIND") {
         WindMode = 0;

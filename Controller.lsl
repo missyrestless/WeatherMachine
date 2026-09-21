@@ -18,8 +18,10 @@
 // 2026-Sep-21 Created                            //
 //                                                //
 ////////////////////////////////////////////////////
+//
+// Place the Controller script in a child prim
 
-string  VERSION = "1.0.0";
+string  VERSION = "1.0.1";
 
 list FaceColors;
 list FaceAlphas;

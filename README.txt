@@ -1,6 +1,4 @@
-# Truth &amp; Beauty Weather Machine
-
-The Truth &amp; Beauty Weather Machine is a scripted Weather System designed for any Second Life environment or event. This advanced weather system combines rainfall, lightning, thunder, wind and atmospheric sound into one customizable experience.
+The Truth & Beauty Weather Machine is a scripted Weather System designed for any Second Life environment or event. This advanced weather system combines rainfall, lightning, thunder, wind and atmospheric sound into one customizable experience.
 
 Choose from five built-in weather presets: LIGHT RAIN, RAINSTORM, THUNDERSTORM, EXTREME STORM and SCARY STORM. Each preset automatically adjusts rain density, particle speed, visibility, wind behavior and lightning frequency to create a different atmosphere.
 
@@ -18,10 +16,10 @@ The interactive menu provides individual controls for Storm, Rain, Lightning, Th
 
 The system is optimized for performance, using a centralized scheduler, controlled particle limits and temporary owner menu listeners to help reduce unnecessary script and region load. All scripts have been further optimized with LSL-PyOptimizer.
 
-* PERMISSIONS: Copy/Modify
+PERMISSIONS: Copy/Modify
 
-* Modify: Yes
-* Copy: Yes
-* Transfer: No
+Modify: Yes
+Copy: Yes
+Transfer: No
 
-* Creator: Missy Restless `missyrestless@gmail.com`
+Creator: Missy Restless <missyrestless@gmail.com>
