@@ -17,10 +17,11 @@
 //            --------------------                //
 // 2026-Sep-21 Created                            //
 // 2026-Sep-22 Add radius to dialog menu          //
+// 2026-Sep-22 Use private channel, not link msg  //
 // 2026-Sep-23 Adjust rain parameters and pattern //
 ////////////////////////////////////////////////////
 
-string  VERSION = "1.0.2";
+string  VERSION = "1.1.0";
 
 // -------------------------- OWNER CONFIGURATION --------------------------
 float   RAIN_RADIUS       = 10.0;
@@ -33,11 +34,6 @@ float   WIND_STRENGTH     = 0.0;
 
 integer PUBLIC_CONTROL      = FALSE;
 integer START_ON_REZ        = TRUE; // Rain begins immediately after rez/reset
-
-// Controller/Emitter private linked-message protocol
-integer LM_FX_EVENT = 1001; // payload: type|night
-integer LM_FX_STOP  = 1002;
-integer LM_MENU     = 1003; // child prim touch request
 
 integer Storm;
 integer Rain = TRUE;
@@ -58,7 +54,10 @@ integer PendingThunder = -1;
 integer LastThunder = -1;
 integer MenuListen;
 integer MenuChannel;
+integer objChannel;
+integer objListenID;
 key     MenuUser;
+key     Owner;
 string  MenuPage = "MAIN";
 string  LoopName;
 
@@ -246,8 +245,7 @@ lightningEvent(integer forceMajor) {
     integer style = 1 + (integer)llFrand(3.0); // single/double/triple
     if (distanceClass == 2) style = 1;
     if (major) style = 4;
-    llMessageLinked(LINK_SET, LM_FX_EVENT,
-        (string)style + "|" + (string)distanceClass + "|" + (string)major + "|" + (string)Night, NULL_KEY);
+    llRegionSay(objChannel, (string)style + "|" + (string)distanceClass + "|" + (string)major + "|" + (string)Night);
 
     if (Thunder) {
         float delay;
@@ -268,7 +266,7 @@ stopAll() {
     llParticleSystem([]);
     llStopSound();
     LoopName = "";
-    llMessageLinked(LINK_SET, LM_FX_STOP, "STOP", NULL_KEY);
+    llRegionSay(objChannel, "STOP");
 }
 
 startStorm() {
@@ -372,7 +370,7 @@ handleButton(string message) {
     } else if (message == "LIGHTNING") {
         Lightning = !Lightning;
         if (!Lightning) {
-            llMessageLinked(LINK_SET, LM_FX_STOP, "STOP", NULL_KEY);
+            llRegionSay(objChannel, "STOP");
         } else {
             scheduleLightning();
         }
@@ -449,13 +447,22 @@ initialize() {
     LoopName = "";
     llParticleSystem([]);
     llStopSound();
-    llMessageLinked(LINK_SET, LM_FX_STOP, "STOP", NULL_KEY);
+    llRegionSay(objChannel, "STOP");
     if (START_ON_REZ) startStorm();
     updateTimer();
 }
 
 default {
     state_entry() {
+        Owner = llGetOwner();
+
+        // Compute a large negative channel number based on the object owner
+        // All boards owned by the same owner will use the same channel
+        objChannel = 0x80000000 | (integer) ( "0x" + (string) Owner );
+        objChannel -= 1;
+        llListenRemove(objListenID);
+        objListenID = llListen(objChannel, "", NULL_KEY, "");
+
         initialize();
     }
 
@@ -470,23 +477,35 @@ default {
             applyRain();
             applyAmbience();
         }
-        if (change & CHANGED_LINK) llMessageLinked(LINK_SET, LM_FX_STOP, "STOP", NULL_KEY);
+        if (change & CHANGED_LINK) llRegionSay(objChannel, "STOP");
     }
 
     touch_start(integer totalNumber) {
         key toucher = llDetectedKey(0);
-        if (toucher == llGetOwner() || PUBLIC_CONTROL) openMenu(toucher);
+        if (toucher == Owner || PUBLIC_CONTROL) openMenu(toucher);
     }
 
     listen(integer channel, string name, key id, string message) {
-        if (channel != MenuChannel || id != MenuUser) return;
-        if (id != llGetOwner() && !PUBLIC_CONTROL) return;
-        handleButton(message);
-    }
+        string cmd = llToLower(message);
 
-    link_message(integer senderNumber, integer number, string message, key id) {
-        if (number == LM_MENU && (id == llGetOwner() || PUBLIC_CONTROL))
-            openMenu(id);
+        if (channel == objChannel) {
+            if (cmd == "storm off") {
+                stopAll();
+            } else if (cmd == "storm on") {
+                startStorm();
+            } else if (cmd == "storm info") {
+                scanInventory();
+                llOwnerSay(statusText(TRUE));
+            } else if (id == Owner || PUBLIC_CONTROL) {
+                openMenu(id);
+            }
+            return;
+        } else if (channel != MenuChannel || id != MenuUser) {
+            return;
+        } else if (id != Owner && !PUBLIC_CONTROL) {
+            return;
+        }
+        handleButton(message);
     }
 
     timer() {
