@@ -20,7 +20,7 @@
 //
 // Place the Controller script in a child prim
 
-string  VERSION = "1.0.1";
+string  VERSION = "1.0.2";
 
 list FaceColors;
 list FaceAlphas;

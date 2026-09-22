@@ -17,9 +17,10 @@
 //            --------------------                //
 // 2026-Sep-21 Created                            //
 // 2026-Sep-22 Add radius to dialog menu          //
+// 2026-Sep-23 Adjust rain parameters and pattern //
 ////////////////////////////////////////////////////
 
-string  VERSION = "1.0.1";
+string  VERSION = "1.0.2";
 
 // -------------------------- OWNER CONFIGURATION --------------------------
 float   RAIN_RADIUS       = 10.0;
@@ -30,10 +31,6 @@ string  RAIN_TEXTURE      = "RAIN";
 vector  WIND_DIRECTION    = <1.0, 0.0, 0.0>;
 float   WIND_STRENGTH     = 0.0;
 
-float   LIGHTNING_MIN_DELAY = 5.0;
-float   LIGHTNING_MAX_DELAY = 30.0;
-float   AUTO_PHASE_MIN      = 90.0;
-float   AUTO_PHASE_MAX      = 240.0;
 integer PUBLIC_CONTROL      = FALSE;
 integer START_ON_REZ        = TRUE; // Rain begins immediately after rez/reset
 
@@ -49,7 +46,7 @@ integer Thunder = TRUE;
 integer Ambience = TRUE;
 integer Auto;
 integer Night;
-integer Intensity = 2; // 0 light, 1 normal, 2 heavy, 3 extreme, 4 scary
+integer Intensity = 2;  // 0 light, 1 normal, 2 heavy, 3 extreme, 4 scary
 integer WindMode;       // 0 none, 1 light, 2 strong
 float   Volume = 0.75;
 
@@ -141,11 +138,13 @@ applyRain() {
     string texture = "";
     if (inventoryExists(RAIN_TEXTURE, INVENTORY_TEXTURE)) texture = RAIN_TEXTURE;
 
-    integer flags = PSYS_PART_INTERP_COLOR_MASK | PSYS_PART_INTERP_SCALE_MASK |
-                    PSYS_PART_FOLLOW_VELOCITY_MASK;
+    // integer flags = PSYS_PART_INTERP_COLOR_MASK | PSYS_PART_INTERP_SCALE_MASK | PSYS_PART_FOLLOW_VELOCITY_MASK;
+    integer flags = PSYS_PART_INTERP_COLOR_MASK | PSYS_PART_INTERP_SCALE_MASK | PSYS_PART_EMISSIVE_MASK;
     llParticleSystem([
         PSYS_PART_FLAGS, flags,
-        PSYS_SRC_PATTERN, PSYS_SRC_PATTERN_DROP,
+        PSYS_SRC_PATTERN, PSYS_SRC_PATTERN_ANGLE_CONE,
+        PSYS_SRC_ANGLE_BEGIN, 0.00,
+        PSYS_SRC_ANGLE_END, 0.78,
         PSYS_SRC_TEXTURE, texture,
         PSYS_SRC_BURST_RATE, rate,
         PSYS_SRC_BURST_PART_COUNT, particles,
@@ -186,9 +185,8 @@ applyAmbience() {
 }
 
 float lightningDelay() {
-    float minimum = LIGHTNING_MIN_DELAY;
-    float maximum = LIGHTNING_MAX_DELAY;
-    if (maximum < minimum) maximum = minimum;
+    float minimum = 5.0;
+    float maximum = 30.0;
     float factor = 1.0;
     if (Intensity == 0) factor = 2.3;
     else if (Intensity == 1) factor = 1.35;
@@ -202,9 +200,7 @@ scheduleLightning() {
 }
 
 scheduleAuto() {
-    float maximum = AUTO_PHASE_MAX;
-    if (maximum < AUTO_PHASE_MIN) maximum = AUTO_PHASE_MIN;
-    NextAuto = now() + AUTO_PHASE_MIN + llFrand(maximum - AUTO_PHASE_MIN);
+    NextAuto = now() + 90.0 + llFrand(150.0);
 }
 
 setIntensity(integer level) {

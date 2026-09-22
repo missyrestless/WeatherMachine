@@ -16,8 +16,13 @@ make
   rm -rf ${DEST}
   mkdir -p ${DEST}
 
-  cp Controller.lslo ${DEST}/Controller.lsl
-  cp Emitter.lslo ${DEST}/Emitter.lsl
+  if [ "$2" == "-d" ]; then
+    cp Controller.lsl ${DEST}/Controller.lsl
+    cp Emitter.lsl ${DEST}/Emitter.lsl
+  else
+    cp Controller.lslo ${DEST}/Controller.lsl
+    cp Emitter.lslo ${DEST}/Emitter.lsl
+  fi
   cp COPYRIGHT LICENSE ${DEST}
   cp README.txt ${DEST}/README
 }
