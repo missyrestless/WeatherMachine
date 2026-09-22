@@ -16,7 +16,6 @@
 //            Modification History                //
 //            --------------------                //
 // 2026-Sep-21 Created                            //
-//                                                //
 ////////////////////////////////////////////////////
 //
 // Place the Controller script in a child prim

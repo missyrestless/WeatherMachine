@@ -16,7 +16,7 @@
 //            Modification History                //
 //            --------------------                //
 // 2026-Sep-21 Created                            //
-//                                                //
+// 2026-Sep-22 Add radius to dialog menu          //
 ////////////////////////////////////////////////////
 
 string  VERSION = "1.0.1";
@@ -65,10 +65,8 @@ key     MenuUser;
 string  MenuPage = "MAIN";
 string  LoopName;
 
-list ThunderNames;
-list AmbienceNames;
-list INTENSITY_NAMES = ["LIGHT RAIN", "RAINSTORM", "THUNDERSTORM", "EXTREME STORM", "SCARY STORM"];
-list WIND_NAMES = ["NO WIND", "LIGHT WIND", "STRONG WIND"];
+list    ThunderNames;
+list    AmbienceNames;
 
 float clamp(float value, float low, float high) {
     if (value < low) return low;
@@ -314,12 +312,14 @@ showDialog(string page) {
                    "AMBIENCE", "WIND", "AUTO STORM", "STRIKE", "VOLUME", "MORE"];
     } else if (page == "INTENSITY") {
         buttons = ["LIGHT", "NORMAL", "HEAVY", "EXTREME", "SCARY", "BACK"];
+    } else if (page == "RADIUS") {
+        buttons = ["5m", "7m", "10m", "15m", "20m", "25m", "32m", "BACK"];
     } else if (page == "VOLUME") {
         buttons = ["25%", "50%", "75%", "100%", "BACK"];
     } else if (page == "WIND") {
         buttons = ["NO WIND", "LIGHT WIND", "STRONG WIND", "BACK"];
     } else if (page == "MORE") {
-        buttons = ["STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
+        buttons = ["RADIUS", "STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
     }
     llDialog(MenuUser, heading, buttons, MenuChannel);
     updateTimer();
@@ -334,6 +334,9 @@ openMenu(key user) {
 }
 
 string statusText(integer detailed) {
+    list WIND_NAMES = ["NO WIND", "LIGHT WIND", "STRONG WIND"];
+    list INTENSITY_NAMES = ["LIGHT RAIN", "RAINSTORM", "THUNDERSTORM", "EXTREME STORM", "SCARY STORM"];
+
     string text = "Storm: " + onOff(Storm) +
         "\nIntensity: " + llList2String(INTENSITY_NAMES, Intensity) +
         "\nRain: " + onOff(Rain) +
@@ -359,7 +362,7 @@ handleButton(string message) {
         showDialog("MAIN");
         return;
     }
-    if (message == "MORE" || message == "INTENSITY" || message == "VOLUME" || message == "WIND") {
+    if (message == "MORE" || message == "INTENSITY" || message == "VOLUME" || message == "WIND" || message == "RADIUS") {
         showDialog(message);
         return;
     }
@@ -434,6 +437,9 @@ handleButton(string message) {
     } else if (message == "100%") {
         Volume = 1.0;
         applyAmbience();
+    } else if (message == "5m" || message == "7m" || message == "10m" || message == "15m" || message == "20m" || message == "25m" || message == "32m") {
+        RAIN_RADIUS = (integer)llDeleteSubString(message, -1, -1);
+        applyRain();
     }
     updateTimer();
     showDialog(MenuPage);
