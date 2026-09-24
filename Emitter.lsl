@@ -30,8 +30,7 @@ float   RAIN_HEIGHT       = 12.0; // Documented placement height; move the root 
 float   RAIN_SPEED        = 1.0;  // Multiplier, clamped by buildRain()
 float   RAIN_DENSITY      = 1.0;  // Multiplier, 0.25 through 2.0 recommended
 string  RAIN_TEXTURE      = "RAIN";
-// string  SNOW_TEXTURE   = "SNOW";
-string  SNOW_TEXTURE      = "nekka falling snow texture";
+string  SNOW_TEXTURE      = "SNOW";
 vector  WIND_DIRECTION    = <1.0, 0.0, 0.0>;
 float   WIND_STRENGTH     = 0.0;
 
