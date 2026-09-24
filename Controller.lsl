@@ -17,11 +17,12 @@
 //            --------------------                //
 // 2026-Sep-21 Created                            //
 // 2026-Sep-22 Use private channel, not link msg  //
+// 2026-Sep-23 Add support for Snow               //
 ////////////////////////////////////////////////////
 //
 // Place the Controller script in a child prim
 
-string  VERSION = "1.1.0";
+string  VERSION = "1.1.1";
 
 key  Owner;
 list FaceColors;

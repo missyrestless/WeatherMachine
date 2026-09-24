@@ -19,9 +19,10 @@
 // 2026-Sep-22 Add radius to dialog menu          //
 // 2026-Sep-22 Use private channel, not link msg  //
 // 2026-Sep-23 Adjust rain parameters and pattern //
+//             Add support for Snow               //
 ////////////////////////////////////////////////////
 
-string  VERSION = "1.1.0";
+string  VERSION = "1.1.1";
 
 // -------------------------- OWNER CONFIGURATION --------------------------
 float   RAIN_RADIUS       = 10.0;
@@ -29,14 +30,16 @@ float   RAIN_HEIGHT       = 12.0; // Documented placement height; move the root 
 float   RAIN_SPEED        = 1.0;  // Multiplier, clamped by buildRain()
 float   RAIN_DENSITY      = 1.0;  // Multiplier, 0.25 through 2.0 recommended
 string  RAIN_TEXTURE      = "RAIN";
+// string  SNOW_TEXTURE   = "SNOW";
+string  SNOW_TEXTURE      = "nekka falling snow texture";
 vector  WIND_DIRECTION    = <1.0, 0.0, 0.0>;
 float   WIND_STRENGTH     = 0.0;
 
-integer PUBLIC_CONTROL      = FALSE;
 integer START_ON_REZ        = TRUE; // Rain begins immediately after rez/reset
 
 integer Storm;
 integer Rain = TRUE;
+integer Snow = FALSE;
 integer Lightning = TRUE;
 integer Thunder = TRUE;
 integer Ambience = TRUE;
@@ -108,7 +111,7 @@ float effectiveWind() {
 }
 
 applyRain() {
-    if (!Storm || !Rain) {
+    if (!Storm || (!Rain && !Snow)) {
         llParticleSystem([]);
         return;
     }
@@ -135,39 +138,69 @@ applyRain() {
     // the clean downward fall and makes RAIN_SPEED meaningful for every preset.
     vector acceleration = <drift.x, drift.y, -9.8 * clamp(RAIN_SPEED, 0.25, 2.0)>;
     string texture = "";
-    if (inventoryExists(RAIN_TEXTURE, INVENTORY_TEXTURE)) texture = RAIN_TEXTURE;
-
     // integer flags = PSYS_PART_INTERP_COLOR_MASK | PSYS_PART_INTERP_SCALE_MASK | PSYS_PART_FOLLOW_VELOCITY_MASK;
     integer flags = PSYS_PART_INTERP_COLOR_MASK | PSYS_PART_INTERP_SCALE_MASK | PSYS_PART_EMISSIVE_MASK;
-    llParticleSystem([
-        PSYS_PART_FLAGS, flags,
-        PSYS_SRC_PATTERN, PSYS_SRC_PATTERN_ANGLE_CONE,
-        PSYS_SRC_ANGLE_BEGIN, 0.00,
-        PSYS_SRC_ANGLE_END, 0.78,
-        PSYS_SRC_TEXTURE, texture,
-        PSYS_SRC_BURST_RATE, rate,
-        PSYS_SRC_BURST_PART_COUNT, particles,
-        PSYS_SRC_BURST_RADIUS, clamp(RAIN_RADIUS * llList2Float(spreadFactors, Intensity), 0.0, 32.0),
-        PSYS_SRC_BURST_SPEED_MIN, speed,
-        PSYS_SRC_BURST_SPEED_MAX, speed * 1.18,
-        PSYS_SRC_ACCEL, acceleration,
-        PSYS_PART_START_COLOR, <0.72, 0.80, 0.90>,
-        PSYS_PART_END_COLOR, <0.48, 0.58, 0.70>,
-        PSYS_PART_START_ALPHA, llList2Float(alphas, Intensity),
-        PSYS_PART_END_ALPHA, 0.08,
-        PSYS_PART_START_SCALE, llList2Vector(sizes, Intensity),
-        PSYS_PART_END_SCALE, llList2Vector(sizes, Intensity) * 0.55,
-        PSYS_PART_MAX_AGE, life,
-        PSYS_SRC_MAX_AGE, 0.0
-    ]);
+    if (Rain) {
+        if (inventoryExists(RAIN_TEXTURE, INVENTORY_TEXTURE)) texture = RAIN_TEXTURE;
+        llParticleSystem([
+            PSYS_PART_FLAGS, flags,
+            PSYS_SRC_PATTERN, PSYS_SRC_PATTERN_ANGLE_CONE,
+            PSYS_SRC_ANGLE_BEGIN, 0.00,
+            PSYS_SRC_ANGLE_END, 0.78,
+            PSYS_SRC_TEXTURE, texture,
+            PSYS_SRC_BURST_RATE, rate,
+            PSYS_SRC_BURST_PART_COUNT, particles,
+            PSYS_SRC_BURST_RADIUS, clamp(RAIN_RADIUS * llList2Float(spreadFactors, Intensity), 0.0, 32.0),
+            PSYS_SRC_BURST_SPEED_MIN, speed,
+            PSYS_SRC_BURST_SPEED_MAX, speed * 1.18,
+            PSYS_SRC_ACCEL, acceleration,
+            PSYS_PART_START_COLOR, <0.72, 0.80, 0.90>,
+            PSYS_PART_END_COLOR, <0.48, 0.58, 0.70>,
+            PSYS_PART_START_ALPHA, llList2Float(alphas, Intensity),
+            PSYS_PART_END_ALPHA, 0.08,
+            PSYS_PART_START_SCALE, llList2Vector(sizes, Intensity),
+            PSYS_PART_END_SCALE, llList2Vector(sizes, Intensity) * 0.55,
+            PSYS_PART_MAX_AGE, life,
+            PSYS_SRC_MAX_AGE, 0.0
+        ]);
+    } else {
+        flags = flags | PSYS_PART_WIND_MASK;
+        if (inventoryExists(SNOW_TEXTURE, INVENTORY_TEXTURE)) texture = SNOW_TEXTURE;
+        llParticleSystem([
+            PSYS_PART_FLAGS, flags,
+            PSYS_SRC_PATTERN, PSYS_SRC_PATTERN_ANGLE_CONE,
+            PSYS_SRC_OMEGA, <0.0, 0.0, 0.5>,
+            PSYS_SRC_ANGLE_BEGIN, 0.785,
+            PSYS_SRC_ANGLE_END, 0.0,
+            PSYS_SRC_TEXTURE, texture, 
+            PSYS_SRC_BURST_RATE, rate,
+            PSYS_SRC_BURST_PART_COUNT, particles,
+            PSYS_SRC_BURST_RADIUS, clamp(RAIN_RADIUS * llList2Float(spreadFactors, Intensity), 0.0, 32.0),
+            PSYS_SRC_BURST_SPEED_MIN, 0.0,
+            PSYS_SRC_BURST_SPEED_MAX, 0.2, 
+            PSYS_SRC_ACCEL, <0.0, 0.0, -1.5>,
+            PSYS_PART_START_COLOR, <1.0, 1.0, 1.0>,
+            PSYS_PART_END_COLOR, <0.7, 0.7, 0.7>, 
+            PSYS_PART_START_ALPHA, 0.4,
+            PSYS_PART_END_ALPHA, 0.0,
+            PSYS_PART_START_SCALE, <4.0, 4.0, 4.0>,
+            PSYS_PART_END_SCALE, <4.0, 4.0, 4.0>, 
+            PSYS_PART_MAX_AGE, (float)2.0*life,
+            PSYS_SRC_MAX_AGE, 0.0
+        ]);
+    }
 }
 
 string desiredLoop() {
     if (!Storm || !Ambience) return "";
-    if (Intensity >= 2 && inventoryExists("HEAVY_RAIN_LOOP", INVENTORY_SOUND))
-        return "HEAVY_RAIN_LOOP";
+    if (Rain) {
+        if (Intensity >= 2 && inventoryExists("HEAVY_RAIN_LOOP", INVENTORY_SOUND))
+            return "HEAVY_RAIN_LOOP";
+    }
     if (inventoryExists("STORM_AMBIENCE", INVENTORY_SOUND)) return "STORM_AMBIENCE";
-    if (inventoryExists("RAIN_LOOP", INVENTORY_SOUND)) return "RAIN_LOOP";
+    if (Rain) {
+        if (inventoryExists("RAIN_LOOP", INVENTORY_SOUND)) return "RAIN_LOOP";
+    }
     if (WindMode && inventoryExists("WIND_LOOP", INVENTORY_SOUND)) return "WIND_LOOP";
     return "";
 }
@@ -297,13 +330,18 @@ closeMenu() {
 showDialog(string page) {
     MenuPage = page;
     MenuExpires = now() + 60.0;
-    string heading = "Version: " + VERSION + "\n";
+    string heading = "Version: " + VERSION + "\n\n";
     list buttons;
     if (page == "MAIN") {
         // heading += "Storm: " + onOff(Storm) + " | " + llList2String(INTENSITY_NAMES, Intensity);
         heading += statusText(FALSE);
-        buttons = ["STORM ON", "STORM OFF", "INTENSITY", "RAIN", "LIGHTNING", "THUNDER",
-                   "AMBIENCE", "WIND", "AUTO STORM", "STRIKE", "VOLUME", "MORE"];
+        if (Storm) {
+            buttons = ["STORM OFF"];
+        } else {
+            buttons = ["STORM ON"];
+        }
+        buttons += ["INTENSITY", "EXIT", "RAIN", "SNOW", "LIGHTNING", "THUNDER",
+                   "AMBIENCE", "WIND", "AUTO STORM", "STRIKE", "MORE"];
     } else if (page == "INTENSITY") {
         buttons = ["LIGHT", "NORMAL", "HEAVY", "EXTREME", "SCARY", "BACK"];
     } else if (page == "RADIUS") {
@@ -313,7 +351,7 @@ showDialog(string page) {
     } else if (page == "WIND") {
         buttons = ["NO WIND", "LIGHT WIND", "STRONG WIND", "BACK"];
     } else if (page == "MORE") {
-        buttons = ["RADIUS", "STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
+        buttons = ["RADIUS", "VOLUME", "STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
     }
     llDialog(MenuUser, heading, buttons, MenuChannel);
     updateTimer();
@@ -334,6 +372,7 @@ string statusText(integer detailed) {
     string text = "Storm: " + onOff(Storm) +
         "\nIntensity: " + llList2String(INTENSITY_NAMES, Intensity) +
         "\nRain: " + onOff(Rain) +
+        "\nSnow: " + onOff(Snow) +
         "\nLightning: " + onOff(Lightning) +
         "\nThunder: " + onOff(Thunder) +
         "\nAmbience: " + onOff(Ambience) +
@@ -345,6 +384,7 @@ string statusText(integer detailed) {
         text += "\nThunder sounds: " + (string)llGetListLength(ThunderNames) +
             "\nAmbience sounds: " + (string)llGetListLength(AmbienceNames) +
             "\nRain texture: " + onOff(inventoryExists(RAIN_TEXTURE, INVENTORY_TEXTURE)) +
+            "\nSnow texture: " + onOff(inventoryExists(SNOW_TEXTURE, INVENTORY_TEXTURE)) +
             "\nFree core memory: " + (string)llGetFreeMemory() + " bytes" +
             "\nEmitter height setting: " + (string)RAIN_HEIGHT + " m";
     }
@@ -366,6 +406,11 @@ handleButton(string message) {
         stopAll();
     } else if (message == "RAIN") {
         Rain = !Rain;
+        if (Rain) Snow = FALSE;
+        applyRain();
+    } else if (message == "SNOW") {
+        Snow = !Snow;
+        if (Snow) Rain = FALSE;
         applyRain();
     } else if (message == "LIGHTNING") {
         Lightning = !Lightning;
@@ -396,6 +441,9 @@ handleButton(string message) {
     } else if (message == "DIAGNOSTICS") {
         scanInventory();
         llOwnerSay(statusText(TRUE));
+    } else if (message == "EXIT") {
+        closeMenu();
+        return;
     } else if (message == "RESET") {
         closeMenu();
         llResetScript();
@@ -482,27 +530,27 @@ default {
 
     touch_start(integer totalNumber) {
         key toucher = llDetectedKey(0);
-        if (toucher == Owner || PUBLIC_CONTROL) openMenu(toucher);
+        if (toucher == Owner) openMenu(toucher);
     }
 
     listen(integer channel, string name, key id, string message) {
         string cmd = llToLower(message);
 
         if (channel == objChannel) {
-            if (cmd == "storm off") {
+            if (cmd == "menu") {
+                openMenu(Owner);
+            } else if (cmd == "storm off") {
                 stopAll();
             } else if (cmd == "storm on") {
                 startStorm();
             } else if (cmd == "storm info") {
                 scanInventory();
                 llOwnerSay(statusText(TRUE));
-            } else if (id == Owner || PUBLIC_CONTROL) {
-                openMenu(id);
             }
             return;
         } else if (channel != MenuChannel || id != MenuUser) {
             return;
-        } else if (id != Owner && !PUBLIC_CONTROL) {
+        } else if (id != Owner) {
             return;
         }
         handleButton(message);
