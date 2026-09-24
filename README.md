@@ -2,6 +2,10 @@
 
 The Truth &amp; Beauty Weather Machine is a scripted Weather System designed for any Second Life environment or event. This advanced weather system combines rainfall, lightning, thunder, wind and atmospheric sound into one customizable experience.
 
+The system consists of 2 objects, the Weather Machine Controller and the Weather Machine Emitter. Rez and position the Controller in a location the owner can easily access. Rez and position the Emitter at least 12 meters high in the sky. Multiple Emitters can be rezzed. Only a single Controller is needed. Both Controller and Emitter are single prim objects.
+
+The owner can touch either the Controller or Emitter to display the weather management menu system.
+
 Choose from five built-in weather presets: LIGHT RAIN, RAINSTORM, THUNDERSTORM, EXTREME STORM and SCARY STORM. Each preset automatically adjusts rain density, particle speed, visibility, wind behavior and lightning frequency to create a different atmosphere.
 
 The optimized rain engine produces dense downward rainfall with configurable radius, speed, density and custom rain texture support. Built-in wind modes include No Wind, Light Wind and Strong Wind, allowing rain to visibly drift and angle during stronger storms.

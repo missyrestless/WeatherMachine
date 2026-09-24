@@ -16,12 +16,15 @@
 //            Modification History                //
 //            --------------------                //
 // 2026-Sep-21 Created                            //
+// 2026-Sep-22 Use private channel, not link msg  //
+// 2026-Sep-23 Add support for Snow               //
 ////////////////////////////////////////////////////
 //
 // Place the Controller script in a child prim
 
-string  VERSION = "1.0.2";
+string  VERSION = "1.1.1";
 
+key  Owner;
 list FaceColors;
 list FaceAlphas;
 list FaceGlows;
@@ -43,6 +46,10 @@ integer Lit;
 integer Major;
 integer Distance;
 integer Night;
+
+// Object communication channel and listener ID
+integer objChannel;
+integer objListenID;
 
 captureNormal() {
     FaceColors = []; FaceAlphas = []; FaceGlows = []; FaceFullbright = [];
@@ -179,12 +186,16 @@ startEvent(integer style, integer distanceClass, integer major, integer night) {
 
 default {
     state_entry() {
+        Owner = llGetOwner();
         captureNormal();
         restoreNormal();
-    }
 
-    on_rez(integer startParameter) {
-        llResetScript();
+        // Compute a large negative channel number based on the object owner
+        // All emitters owned by the same owner will use the same channel
+        objChannel = 0x80000000 | (integer) ( "0x" + (string) Owner );
+        objChannel -= 1;
+        llListenRemove(objListenID);
+        objListenID = llListen(objChannel, "", NULL_KEY, "");
     }
 
     changed(integer change) {
@@ -193,31 +204,32 @@ default {
         if ((change & CHANGED_INVENTORY) && !Active) captureNormal();
     }
 
-    link_message(integer senderNumber, integer number, string message, key id) {
-        integer RCV_LM_FX_EVENT = 1001;
-        integer RCV_LM_FX_STOP  = 1002;
-
-        if (number == RCV_LM_FX_STOP) {
-            restoreNormal();
-        } else if (number == RCV_LM_FX_EVENT) {
-            list fields = llParseString2List(message, ["|"], []);
-            if (llGetListLength(fields) == 4) {
-                startEvent(llList2Integer(fields, 0), llList2Integer(fields, 1),
-                           llList2Integer(fields, 2), llList2Integer(fields, 3));
+    listen(integer channel, string name, key id, string message) {
+        if (channel == objChannel) {
+            if (message == "STOP") {
+                restoreNormal();
+            } else {
+                list fields = llParseString2List(message, ["|"], []);
+                if (llGetListLength(fields) == 4) {
+                    startEvent(llList2Integer(fields, 0), llList2Integer(fields, 1),
+                               llList2Integer(fields, 2), llList2Integer(fields, 3));
+                }
             }
         }
     }
 
     touch_start(integer totalNumber) {
-        integer SND_LM_MENU = 1003;
-
-        // Allow the visible child prim to open the controller menu even when
-        // the rain-emitter root is high overhead and difficult to touch.
-        llMessageLinked(LINK_ROOT, SND_LM_MENU, "MENU", llDetectedKey(0));
+        if (llDetectedKey(0) == Owner) {
+            llRegionSay(objChannel, "MENU");
+        }
     }
 
     timer() {
         if (!Active) { restoreNormal(); return; }
         if (Lit) flashOff(); else flashOn();
+    }
+
+    on_rez(integer startParameter) {
+        llResetScript();
     }
 }
