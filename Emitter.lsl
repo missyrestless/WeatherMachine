@@ -22,7 +22,7 @@
 //             Add support for Snow               //
 ////////////////////////////////////////////////////
 
-string  VERSION = "1.1.1";
+string  VERSION = "1.1.2";
 
 // -------------------------- OWNER CONFIGURATION --------------------------
 float   RAIN_RADIUS       = 10.0;
@@ -37,11 +37,12 @@ float   WIND_STRENGTH     = 0.0;
 integer START_ON_REZ        = TRUE; // Rain begins immediately after rez/reset
 
 integer Storm;
-integer Rain = TRUE;
-integer Snow = FALSE;
+integer Rain      = TRUE;
+integer Snow      = FALSE;
 integer Lightning = TRUE;
-integer Thunder = TRUE;
-integer Ambience = TRUE;
+integer Thunder   = TRUE;
+integer Ambience  = TRUE;
+integer Visible   = FALSE;
 integer Auto;
 integer Night;
 integer Intensity = 2;  // 0 light, 1 normal, 2 heavy, 3 extreme, 4 scary
@@ -350,7 +351,12 @@ showDialog(string page) {
     } else if (page == "WIND") {
         buttons = ["NO WIND", "LIGHT WIND", "STRONG WIND", "BACK"];
     } else if (page == "MORE") {
-        buttons = ["RADIUS", "VOLUME", "STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
+        if (Visible) {
+            buttons = ["HIDE"];
+        } else {
+            buttons = ["SHOW"];
+        }
+        buttons += ["RADIUS", "VOLUME", "STATUS", "DIAGNOSTICS", "DAY/NIGHT", "RESET", "BACK"];
     }
     llDialog(MenuUser, heading, buttons, MenuChannel);
     updateTimer();
@@ -440,6 +446,12 @@ handleButton(string message) {
     } else if (message == "DIAGNOSTICS") {
         scanInventory();
         llOwnerSay(statusText(TRUE));
+    } else if (message == "HIDE") {
+        llSetAlpha(0.0, ALL_SIDES);
+        Visible = FALSE;
+    } else if (message == "SHOW") {
+        llSetAlpha(1.0, ALL_SIDES);
+        Visible = TRUE;
     } else if (message == "EXIT") {
         closeMenu();
         return;
@@ -495,6 +507,11 @@ initialize() {
     llParticleSystem([]);
     llStopSound();
     llRegionSay(objChannel, "STOP");
+    if (Visible) {
+        llSetAlpha(1.0, ALL_SIDES);
+    } else {
+        llSetAlpha(0.0, ALL_SIDES);
+    }
     if (START_ON_REZ) startStorm();
     updateTimer();
 }
